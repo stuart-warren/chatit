@@ -4,7 +4,7 @@
 package main
 
 import (
-	"elasticsearch"
+	"github.com/stuart-warren/chatit/gen-go/elasticsearch"
 	"flag"
 	"fmt"
 	"git.apache.org/thrift.git/lib/go/thrift"
@@ -128,16 +128,23 @@ func main() {
 			Usage()
 			return
 		}
-		factory13 := thrift.NewTSimpleJSONProtocolFactory()
+		factory13 := thrift.NewTJSONProtocolFactory()
 		jsProt14 := factory13.GetProtocol(mbTrans11)
 		argvalue0 := elasticsearch.NewRestRequest()
 		err15 := argvalue0.Read(jsProt14)
 		if err15 != nil {
+			fmt.Println(err15)
 			Usage()
 			return
 		}
 		value0 := argvalue0
-		fmt.Print(client.Execute(value0))
+		result, err16 := client.Execute(value0)
+		if err16 != nil {
+			fmt.Println(err16)
+			Usage()
+			return
+		}
+		fmt.Printf("%+v", string(result.GetBody()))
 		fmt.Print("\n")
 		break
 	case "":
