@@ -1,49 +1,44 @@
 package main
 
 import (
-    "github.com/gin-gonic/gin"
-    "log"
-    "net/http"
-    "time"
+	"flag"
+	"github.com/gin-gonic/gin"
+	"log"
+	"net/http"
+	"text/template"
 )
 
-var (
-    BLANK_TIME = time.Time{}
-)
+var addr = flag.String("addr", ":5000", "main http address")
+var rootTempl = template.Must(template.ParseFiles("index.html"))
 
-func messageGet(c *gin.Context) {
-    ts := time.Now().UTC()
-    msg := Message{Room: "#test", Timestamp: ts, Message: "This is test"}
-    c.JSON(200, msg)
-}
-
-func messagePost(c *gin.Context) {
-    var msg Message
-    if c.Bind(&msg) {
-        if msg.Timestamp == BLANK_TIME {
-            msg.Timestamp = time.Now().UTC()
-        }
-        if msg.ClientId == "" {
-            msg.ClientId = GetMD5Hash(c.Request.UserAgent())
-        }
-        if msg.Id == "" {
-            msg.Id = GetUUID()
-        }
-        c.JSON(200, msg)
-    } else {
-        c.JSON(400, gin.H{"error":"400 Bad request"})
-    }
+func rootHandler(context *gin.Context) {
+	r := context.Request
+	w := context.Writer
+	if r.URL.Path != "/" {
+		http.Error(w, "Not found", 404)
+		return
+	}
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", 405)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	rootTempl.Execute(w, r.Host)
 }
 
 func main() {
-    log.Println("Starting.")
-    r := gin.Default()
-    r.GET("/message", messageGet)
-    r.POST("/message", messagePost)
+	flag.Parse()
+	log.Println("Starting.")
+	go h.run()
+	r := gin.Default()
+	r.GET("/favicon.ico", func(c *gin.Context) {
+		c.File("favicon.ico")
+	})
+	r.GET("/", rootHandler)
+	r.GET("/ws", wsHandler)
 
-    http.Handle("/", r)
-    err := http.ListenAndServe(":8080", nil)
-    if err != nil {
-        panic("ListenAndServe: " + err.Error())
-    }
+	err := http.ListenAndServe(*addr, r)
+	if err != nil {
+		panic("ListenAndServe: " + err.Error())
+	}
 }

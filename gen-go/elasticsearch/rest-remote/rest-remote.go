@@ -4,10 +4,10 @@
 package main
 
 import (
-	"github.com/stuart-warren/chatit/gen-go/elasticsearch"
 	"flag"
 	"fmt"
 	"git.apache.org/thrift.git/lib/go/thrift"
+	"github.com/stuart-warren/chatit/gen-go/elasticsearch"
 	"math"
 	"net"
 	"net/url"

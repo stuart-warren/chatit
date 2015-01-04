@@ -1,17 +1,17 @@
 package main
 
 import (
-    "crypto/md5"
-    "encoding/hex"
-    "code.google.com/p/go-uuid/uuid"
+	"code.google.com/p/go-uuid/uuid"
+	"crypto/md5"
+	"encoding/hex"
 )
 
 func GetMD5Hash(text string) string {
-    hasher := md5.New()
-    hasher.Write([]byte(text))
-    return hex.EncodeToString(hasher.Sum(nil))
+	hasher := md5.New()
+	hasher.Write([]byte(text))
+	return hex.EncodeToString(hasher.Sum(nil))
 }
 
 func GetUUID() string {
-    return uuid.New()
+	return uuid.New()
 }
