@@ -8,6 +8,7 @@
     var conn;
     var msg = $("#msg");
     var log = $("#log");
+    var jsonmsg;
     function appendLog(msg) {
       var d = log[0]
       var doScroll = d.scrollTop == d.scrollHeight - d.clientHeight;
@@ -23,7 +24,9 @@
       if (!msg.val()) {
         return false;
       }
-      conn.send(msg.val());
+      jsonmsg = JSON.stringify({message: msg.val()});
+      console.log(jsonmsg);
+      conn.send(jsonmsg);
       msg.val("");
       return false
     });

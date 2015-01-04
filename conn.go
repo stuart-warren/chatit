@@ -22,7 +22,7 @@ var upgrader = websocket.Upgrader{
 
 type connection struct {
 	ws   *websocket.Conn
-	send chan []byte
+	send chan interface{}
 }
 
 func (c *connection) readPump() {
@@ -30,14 +30,17 @@ func (c *connection) readPump() {
 		h.unregister <- c
 		c.ws.Close()
 	}()
+	message := Msg{}
 	c.ws.SetReadLimit(maxMessageSize)
 	c.ws.SetReadDeadline(time.Now().Add(pongWait))
 	c.ws.SetPongHandler(func(string) error { c.ws.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	for {
-		_, message, err := c.ws.ReadMessage()
+		err := c.ws.ReadJSON(&message)
 		if err != nil {
+			log.Println("failed reading json from pump")
 			break
 		}
+		log.Println(message)
 		h.broadcast <- message
 	}
 }
@@ -45,6 +48,11 @@ func (c *connection) readPump() {
 func (c *connection) write(mtype int, payload []byte) error {
 	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
 	return c.ws.WriteMessage(mtype, payload)
+}
+
+func (c *connection) writeJSON(payload interface{}) error {
+	c.ws.SetWriteDeadline(time.Now().Add(writeWait))
+	return c.ws.WriteJSON(payload)
 }
 
 func (c *connection) writePump() {
@@ -57,10 +65,11 @@ func (c *connection) writePump() {
 		select {
 		case message, ok := <-c.send:
 			if !ok {
+				log.Println("couldn't send, closing")
 				c.write(websocket.CloseMessage, []byte{})
 				return
 			}
-			if err := c.write(websocket.TextMessage, message); err != nil {
+			if err := c.writeJSON(message); err != nil {
 				return
 			}
 		case <-ticker.C:
@@ -84,7 +93,7 @@ func wsHandler(context *gin.Context) {
 		log.Println(err)
 		return
 	}
-	c := &connection{send: make(chan []byte, 256), ws: ws}
+	c := &connection{send: make(chan interface{}, 256), ws: ws}
 	h.register <- c
 	go c.writePump()
 	c.readPump()

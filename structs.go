@@ -31,6 +31,10 @@ type Room struct {
 	Locked bool
 }
 
+type Msg struct {
+	Message string `json:"message"`
+}
+
 type Message struct {
 	Id        string    `json:"id"`
 	ClientId  string    `json:"client"`
