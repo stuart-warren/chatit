@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/gorilla/websocket"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"time"
